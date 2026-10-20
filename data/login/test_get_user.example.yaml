@@ -1,0 +1,12 @@
+# Copy this file to test_get_user.yaml and adjust the expected user details.
+- feature: 登录模块
+  story: 获取用户信息接口
+  title: 用户登录成功
+  request:
+    methods: get
+    url: https://your-test-api.example/api/auth/me
+    headers:
+      Authorization: Bearer ${token}
+  validate:
+    - eq: ["status_code", 200]
+    - eq: ["json.user.email", "your-test-account@example.com"]

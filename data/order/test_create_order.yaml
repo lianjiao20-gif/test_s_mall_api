@@ -1,0 +1,62 @@
+-
+  feature: 订单模块
+  story: 创建购物车订单接口
+  title: 商品库存不足
+  request:
+    methods: post
+    url: http://134.175.134.64:8080/api/orders
+    headers:
+      Authorization: Bearer ${token}
+  preflight:
+    productId: 1
+  validate:
+    - eq: ["status_code", 409]
+    - eq: ["json.error.code", "OUT_OF_STOCK"]
+    - contains: ["json.error.message", "库存不足"]
+
+-
+  feature: 订单模块
+  story: 创建购物车订单接口
+  title: 根据购物车创建订单成功
+  request:
+    methods: post
+    url: http://134.175.134.64:8080/api/orders
+    headers: 
+      Authorization: Bearer ${token}
+  setup:
+    clear_cart: true
+    methods: post
+    url: http://134.175.134.64:8080/api/cart/items
+    json:
+      productId: 2
+      quantity: 1
+  validate: 
+    - eq: ["status_code", 201]
+
+-
+  feature: 订单模块
+  story: 创建购物车订单接口
+  title: 购物车为空
+  request:
+    methods: post
+    url: http://134.175.134.64:8080/api/orders
+    headers: 
+      Authorization: Bearer ${token}
+  validate: 
+    - eq: ["status_code", 400]
+    - eq: ["json.error.code", "EMPTY_CART"]
+    - eq: ["json.error.message", "购物车是空的"]
+
+-
+  feature: 订单模块
+  story: 创建购物车订单接口
+  title: 用户未登录
+  request:
+    methods: post
+    url: http://134.175.134.64:8080/api/orders
+    headers: null
+  validate: 
+    - eq: ["status_code", 401]
+    - eq: ["json.error.code", "UNAUTHORIZED"]
+    - eq: ["json.error.message", "请先登录"]
+

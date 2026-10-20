@@ -1,0 +1,44 @@
+-
+  feature: 购物车模块
+  story: 删除购物车商品接口
+  title: 删除成功
+  request:
+    methods: delete
+    url: http://134.175.134.64:8080/api/cart/items/{productId}
+    headers: 
+      Authorization: "Bearer ${token}"
+    path_params:
+      productId: 1
+  validate: 
+    - eq: ["status_code", 204]
+
+-
+  feature: 购物车模块
+  story: 删除购物车商品接口
+  title: 商品id不合法
+  request:
+    methods: delete
+    url: http://134.175.134.64:8080/api/cart/items/{productId}
+    headers: 
+      Authorization: "Bearer ${token}"
+    path_params:
+      productId: aaa
+  validate: 
+    - eq: ["status_code", 400]
+    - eq: ["json.error.code", "INVALID_ID"]
+    - eq: ["json.error.message", "无效的 ID"]
+
+-
+  feature: 购物车模块
+  story: 删除购物车商品接口
+  title: 商品id不合法
+  request:
+    methods: delete
+    url: http://134.175.134.64:8080/api/cart/items/{productId}
+    headers: null
+    path_params:
+      productId: 1
+  validate: 
+    - eq: ["status_code", 401]
+    - eq: ["json.error.code", "UNAUTHORIZED"]
+    - eq: ["json.error.message", "请先登录"]

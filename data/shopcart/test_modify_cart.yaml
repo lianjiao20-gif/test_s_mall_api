@@ -1,0 +1,110 @@
+-
+  feature: 购物车模块
+  story: 修改购物车商品接口
+  title: 修改商品后的数量
+  request:
+    methods: patch
+    url: http://134.175.134.64:8080/api/cart/items/{productId}
+    headers: 
+      Authorization: "Bearer ${token}"
+    path_params:
+      productId: 2
+    json:
+      quantity: 1
+  validate: 
+    - eq: ["status_code", 200]
+
+-
+  feature: 购物车模块
+  story: 修改购物车商品接口
+  title: 商品id不合法
+  request:
+    methods: patch
+    url: http://134.175.134.64:8080/api/cart/items/{productId}
+    headers: 
+      Authorization: "Bearer ${token}"
+    path_params:
+      productId: aaa
+    json:
+      quantity: 1
+  validate: 
+    - eq: ["status_code", 400]
+
+-
+  feature: 购物车模块
+  story: 修改购物车商品接口
+  title: 商品数量不合法
+  request:
+    methods: patch
+    url: http://134.175.134.64:8080/api/cart/items/{productId}
+    headers: 
+      Authorization: "Bearer ${token}"
+    path_params:
+      productId: 1
+    json:
+      quantity: 100
+  validate: 
+    - eq: ["status_code", 400]
+
+-
+  feature: 购物车模块
+  story: 修改购物车商品接口
+  title: 用户未登录
+  request:
+    methods: patch
+    url: http://134.175.134.64:8080/api/cart/items/{productId}
+    headers: null
+    path_params:
+      productId: 1
+    json:
+      quantity: 1
+  validate: 
+    - eq: ["status_code", 401]
+
+-
+  feature: 购物车模块
+  story: 修改购物车商品接口
+  title: 商品不存在
+  request:
+    methods: patch
+    url: http://134.175.134.64:8080/api/cart/items/{productId}
+    headers: 
+      Authorization: "Bearer ${token}"
+    path_params:
+      productId: 100
+    json:
+      quantity: 1
+  validate: 
+    - eq: ["status_code", 404]
+
+-
+  feature: 购物车模块
+  story: 修改购物车商品接口
+  title: 商品不在购物车里
+  request:
+    methods: patch
+    url: http://134.175.134.64:8080/api/cart/items/{productId}
+    headers: 
+      Authorization: "Bearer ${token}"
+    path_params:
+      productId: 3
+    json:
+      quantity: 1
+  validate: 
+    - eq: ["status_code", 404]
+
+-
+  feature: 购物车模块
+  story: 修改购物车商品接口
+  title: 商品加购库存不足
+  request:
+    methods: patch
+    url: http://134.175.134.64:8080/api/cart/items/{productId}
+    headers: 
+      Authorization: "Bearer ${token}"
+    path_params:
+      productId: 1
+    json:
+      quantity: 60
+  validate: 
+    - eq: ["status_code", 409]

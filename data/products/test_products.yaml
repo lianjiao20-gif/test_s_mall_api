@@ -1,0 +1,10 @@
+-
+  feature: 商品模块
+  story: 查询商品列表接口
+  title: 查询成功
+  request:
+    methods: get
+    url: http://134.175.134.64:8080/api/products
+    headers: null
+  validate: 
+    - eq: ["status_code", 200]

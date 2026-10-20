@@ -1,0 +1,24 @@
+-
+  feature: 购物车模块
+  story: 获取购物车商品和合计金额接口
+  title: 查询购物车商品和合计金额成功
+  request:
+    methods: get
+    url: http://134.175.134.64:8080/api/cart
+    headers: 
+      Authorization: "Bearer ${token}"
+  validate: 
+    - eq: ["status_code", 200]
+
+-
+  feature: 购物车模块
+  story: 获取购物车商品和合计金额接口
+  title: 用户未登录
+  request:
+    methods: get
+    url: http://134.175.134.64:8080/api/cart
+    headers: null
+  validate: 
+    - eq: ["status_code", 401]
+    - eq: ["json.error.code", "UNAUTHORIZED"]
+    - eq: ["json.error.message", "请先登录"]

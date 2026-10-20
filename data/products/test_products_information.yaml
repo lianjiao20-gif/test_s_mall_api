@@ -1,0 +1,42 @@
+-
+  feature: 商品模块
+  story: 获取商品详情接口
+  title: 查询成功
+  request:
+    methods: get
+    url: http://134.175.134.64:8080/api/products/{id}
+    headers: null
+    params:
+      id: 1
+  validate: 
+    - eq: ["status_code", 200]
+
+-
+  feature: 商品模块
+  story: 获取商品详情接口
+  title: 查询的商品id不存在
+  request:
+    methods: get
+    url: http://134.175.134.64:8080/api/products/{id}
+    headers: null
+    params:
+      id: 100
+  validate: 
+    - eq: ["status_code", 404]
+    - eq: ["json.error.code", "NOT_FOUND"]
+    - eq: ["json.error.message", "商品不存在"]
+
+-
+  feature: 商品模块
+  story: 获取商品详情接口
+  title: 查询的商品id无效
+  request:
+    methods: get
+    url: http://134.175.134.64:8080/api/products/{id}
+    headers: null
+    params:
+      id: aaa
+  validate: 
+    - eq: ["status_code", 400]
+    - eq: ["json.error.code", "INVALID_ID"]
+    - eq: ["json.error.message", "无效的 ID"]

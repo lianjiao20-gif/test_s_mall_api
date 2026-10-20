@@ -1,0 +1,60 @@
+-
+  feature: 订单模块
+  story: 用户订单详情接口
+  title: 查询本人的订单列表信息
+  request:
+    methods: get
+    url: http://134.175.134.64:8080/api/orders/{id}
+    headers: 
+      Authorization: Bearer ${token}
+    path_params:
+      id: 1
+  validate: 
+    - eq: ["status_code", 200]
+
+-
+  feature: 订单模块
+  story: 用户订单详情接口
+  title: 订单id不合法
+  request:
+    methods: get
+    url: http://134.175.134.64:8080/api/orders/{id}
+    headers:
+      Authorization: Bearer ${token}
+    path_params:
+      id: aaa
+  validate: 
+    - eq: ["status_code", 400]
+    - eq: ["json.error.code", "INVALID_ID"]
+    - eq: ["json.error.message", "无效的 ID"]
+
+-
+  feature: 订单模块
+  story: 用户订单详情接口
+  title: 用户未登录
+  request:
+    methods: get
+    url: http://134.175.134.64:8080/api/orders/{id}
+    headers: null
+    path_params:
+      id: 1
+  validate: 
+    - eq: ["status_code", 401]
+    - eq: ["json.error.code", "UNAUTHORIZED"]
+    - eq: ["json.error.message", "请先登录"]
+
+-
+  feature: 订单模块
+  story: 用户订单详情接口
+  title: 订单不存在或者不是属于当前用户
+  request:
+    methods: get
+    url: http://134.175.134.64:8080/api/orders/{id}
+    headers:
+      Authorization: Bearer ${token}
+    path_params:
+      id: 22
+  validate: 
+    - eq: ["status_code", 404]
+    - eq: ["json.error.code", "NOT_FOUND"]
+    - eq: ["json.error.message", "订单不存在"]

@@ -1,0 +1,24 @@
+-
+  feature: 订单模块
+  story: 用户订单列表接口
+  title: 查询本人的订单列表信息
+  request:
+    methods: get
+    url: http://134.175.134.64:8080/api/orders
+    headers: 
+      Authorization: Bearer ${token}
+  validate: 
+    - eq: ["status_code", 200]
+
+-
+  feature: 订单模块
+  story: 用户订单列表接口
+  title: 用户未登录
+  request:
+    methods: get
+    url: http://134.175.134.64:8080/api/orders
+    headers: null
+  validate: 
+    - eq: ["status_code", 401]
+    - eq: ["json.error.code", "UNAUTHORIZED"]
+    - eq: ["json.error.message", "请先登录"]

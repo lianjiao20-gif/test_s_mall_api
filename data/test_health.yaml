@@ -1,0 +1,12 @@
+-
+  feature: 健康检查模块
+  story: 健康检查接口
+  title: 验证成功
+  request:
+    methods: get
+    url: http://134.175.134.64:8080/api/health
+    headers: null
+  validate: 
+    - eq: ["status_code", 200]
+    - eq: ["json.status", "ok"]
+    - contains: ["text", "ok"]
