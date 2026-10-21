@@ -12,7 +12,7 @@ def auth_token():
             break
     request_data = login_case["request"]
 
-    res = RequestUtil().get_request_url(
+    res = RequestUtil().sendRequest(
         method=request_data["methods"],
         url=request_data["url"],
         json=request_data["params"],

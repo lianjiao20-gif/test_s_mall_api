@@ -8,7 +8,7 @@ class TestLogin:
     @pytest.mark.parametrize("login_case", read_yaml("data/login/test_login.yaml"))
     def test_login(self, login_case):
         request_data = login_case["request"]            
-        res = RequestUtil().get_request_url(
+        res = RequestUtil().sendRequest(
             method = request_data["methods"],
             url = request_data["url"],
             json = request_data["params"],

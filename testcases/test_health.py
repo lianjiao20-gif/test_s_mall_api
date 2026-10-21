@@ -9,7 +9,7 @@ class TestHealth:
     @pytest.mark.parametrize("health_case", read_yaml("data/test_health.yaml"))
     def test_health_check(self, health_case):
         request_data = health_case["request"]
-        res = RequestUtil().get_request_url(
+        res = RequestUtil().sendRequest(
             method = request_data["methods"],
             url = request_data["url"],
         )

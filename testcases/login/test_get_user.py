@@ -16,7 +16,7 @@ class TestGetUser:
                 new_headers[name] = value.replace("${token}", auth_token)
             headers = new_headers
             
-        res = RequestUtil().get_request_url(
+        res = RequestUtil().sendRequest(
             method = request_data["methods"],
             url = request_data["url"],
             headers = headers,

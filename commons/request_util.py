@@ -2,8 +2,11 @@ import requests
 
 
 class RequestUtil:
-    session = requests.Session()
-    def get_request_url(self, **kwargs):
-        res = RequestUtil.session.request(**kwargs)
+
+    def getSession(self):
+        return requests.Session()
+    
+    def sendRequest(self, **kwargs):
+        res = self.getSession().request(**kwargs)
         return res
         

@@ -11,17 +11,21 @@ def build_headers(request_data, request):
         return None
 
     token = request.getfixturevalue("auth_token")
-    return {
-        name: value.replace("${token}", token)
-        for name, value in headers.items()
-    }
+    new_headers = {}
+    for name, value in headers.items():
+        if name == "Authorization":
+            new_headers[name] = value.replace("${token}", token)
+        else:
+            new_headers[name] = value
+    headers = new_headers
+    return headers
 
 
 class TestCart:
     @pytest.mark.parametrize("cart_case", read_yaml("data/shopcart/test_cart.yaml"))
     def test_get_cart(self, cart_case, request):
         request_data = cart_case["request"]
-        res = RequestUtil().get_request_url(
+        res = RequestUtil().sendRequest(
             method=request_data["methods"],
             url=request_data["url"],
             headers=build_headers(request_data, request),
@@ -31,7 +35,7 @@ class TestCart:
     @pytest.mark.parametrize("add_cart_case", read_yaml("data/shopcart/test_add_cart.yaml"))
     def test_add_cart(self, add_cart_case, request):
         request_data = add_cart_case["request"]
-        res = RequestUtil().get_request_url(
+        res = RequestUtil().sendRequest(
             method = request_data["methods"],
             url = request_data["url"],
             headers = build_headers(request_data, request),
@@ -45,6 +49,8 @@ class TestCart:
         validate = modify_cart_case["validate"]
         headers = build_headers(request_data, request)
         item_url = request_data["url"].format(**request_data["path_params"])
+        # "http://134.175.134.64:8080/api/cart/items/{productId}".format(productId=2)
+        # "http://134.175.134.64:8080/api/cart/items/2
         items_url = item_url.rsplit("/", 1)[0]
         cart_url = items_url.rsplit("/", 1)[0]
         product_id = request_data["path_params"]["productId"]
@@ -64,7 +70,7 @@ class TestCart:
             and expected_status in (200, 404, 409)
         )
         if not needs_cart_state:
-            res = RequestUtil().get_request_url(
+            res = RequestUtil().sendRequest(
                 method=request_data["methods"],
                 url=item_url,
                 headers=headers,
@@ -73,7 +79,7 @@ class TestCart:
             execute_validate(res, validate)
             return
 
-        cart_res = RequestUtil().get_request_url(
+        cart_res = RequestUtil().sendRequest(
             method="get", url=cart_url, headers=headers
         )
         assert cart_res.status_code == 200, cart_res.text
@@ -88,20 +94,20 @@ class TestCart:
         needs_present = expected_status in (200, 409)
         try:
             if needs_present and original_quantity is None:
-                add_res = RequestUtil().get_request_url(
+                add_res = RequestUtil().sendRequest(
                     method="post", url=items_url, headers=headers,
                     json={"productId": product_id, "quantity": 1},
                 )
                 created = add_res.status_code == 201
                 assert add_res.status_code == 201, add_res.text
             elif not needs_present and original_quantity is not None:
-                remove_res = RequestUtil().get_request_url(
+                remove_res = RequestUtil().sendRequest(
                     method="delete", url=item_url, headers=headers
                 )
                 removed = remove_res.status_code == 204
                 assert remove_res.status_code == 204, remove_res.text
 
-            res = RequestUtil().get_request_url(
+            res = RequestUtil().sendRequest(
                 method=request_data["methods"],
                 url=item_url,
                 headers=headers,
@@ -110,18 +116,18 @@ class TestCart:
             execute_validate(res, validate)
         finally:
             if created:
-                restore_res = RequestUtil().get_request_url(
+                restore_res = RequestUtil().sendRequest(
                     method="delete", url=item_url, headers=headers
                 )
                 assert restore_res.status_code == 204, restore_res.text
             elif needs_present and original_quantity is not None:
-                restore_res = RequestUtil().get_request_url(
+                restore_res = RequestUtil().sendRequest(
                     method="patch", url=item_url, headers=headers,
                     json={"quantity": original_quantity},
                 )
                 assert restore_res.status_code == 200, restore_res.text
             elif removed:
-                restore_res = RequestUtil().get_request_url(
+                restore_res = RequestUtil().sendRequest(
                     method="post", url=items_url, headers=headers,
                     json={"productId": product_id, "quantity": original_quantity},
                 )
@@ -131,7 +137,7 @@ class TestCart:
     def test_delete_cart(self, delete_cart_case, request):
         request_data = delete_cart_case["request"]
         item_url = request_data["url"].format(**request_data["path_params"])
-        res = RequestUtil().get_request_url(
+        res = RequestUtil().sendRequest(
             method = request_data["methods"],
             url = item_url,
             headers = build_headers(request_data, request),
