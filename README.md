@@ -96,6 +96,6 @@ extract.yaml             登录后生成的 token（运行时生成）
 
 ## 部分allure截图
 
-![alt text](image-1.png)
-![alt text](image.png)
-![alt text](image-2.png)
+![alt text](asset/image-1.png)
+![alt text](asset/image.png)
+![alt text](asset/image-2.png)
