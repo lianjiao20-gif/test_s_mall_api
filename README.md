@@ -93,3 +93,9 @@ extract.yaml             登录后生成的 token（运行时生成）
 `.gitignore` 忽略 `data/login/test_login.yaml`、`data/login/test_get_user.yaml`、运行时的 `extract.yaml`、虚拟环境、缓存及 Allure 生成目录。仓库只保留 `*.example.yaml` 模板；不要把真实账号、密码或 token 写入这些模板。
 
 如果敏感文件在设置忽略规则前已经被 Git 跟踪，`.gitignore` 不会自动取消跟踪；需要单独从 Git 索引移除，并检查是否已推送到远端。
+
+## 部分allure截图
+
+![alt text](image-1.png)
+![alt text](image.png)
+![alt text](image-2.png)
