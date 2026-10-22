@@ -13,9 +13,11 @@ test: ## 运行测试并生成allure报告，上传服务器, 需要在环境变
 	@export ALLURE_SERVICE_PUBLISH=true; \
 	pytest --alluredir=./temps; \
 	status=$$?; \
+	report_status=0; \
 	if [ $$status -eq 0 ] || [ $$status -eq 1 ]; then \
-		allure generate ./temps --config ./allurerc.mjs --clean; \
+		allure generate ./temps --config ./allurerc.mjs --clean || report_status=$$?; \
 	fi; \
+	if [ $$report_status -ne 0 ]; then exit $$report_status; fi; \
 	exit $$status
 
 install:  ## 安装生产依赖

@@ -19,12 +19,18 @@
 python3 -m venv .venv
 source .venv/bin/activate
 make install
-
-cp data/login/test_login.example.yaml data/login/test_login.yaml
-cp data/login/test_get_user.example.yaml data/login/test_get_user.yaml
 ```
 
-随后编辑这两个本地 YAML 文件，填入专用测试账号、接口地址及对应的预期结果。示例文件仅提供格式参考，不包含可直接使用的账号。**即使只运行健康检查，也要先创建这两个文件**：pytest 在收集用例时会读取它们。
+`data/login/test_login.yaml` 和 `data/login/test_get_user.yaml` 已包含登录、用户信息用例及账号占位符。按测试环境调整接口地址和预期结果，不要把真实账号或密码写入 YAML。
+
+在项目根目录创建 `.env`，填写测试账号：
+
+```dotenv
+SMALL_U1_EMAIL=你的测试邮箱
+SMALL_U1_PASSWORD=你的测试密码
+```
+
+`read_yaml` 读取用例时会替换 `${SMALL_U1_EMAIL}`、`${SMALL_U1_PASSWORD}` 等占位符；同名的 shell 环境变量优先于 `.env`。`${token}` 会留到登录后由测试代码填入。
 
 `make install` 只安装 Python 依赖。Allure Report 3 需要单独安装，并确保 `allure` 命令指向 3.x；例如已安装 Node.js 和 npm 时，可运行 `npm install -g allure`。
 
@@ -46,6 +52,10 @@ python -m pytest testcases/products/test_products.py
 
 `pytest.ini` 默认开启 `--alluredir=./temps --clean-alluredir`，每次运行都会清理上一次的原始结果。两个 Make 目标都会在 pytest 通过或仅有用例失败时生成报告；如果用例失败，`make` 最终仍返回失败状态。购物车和订单用例可能创建或修改测试数据，建议使用专用测试环境和账号。
 
+### GitHub Actions
+
+`.github/workflows/api-tests.yml` 在推送到 `main` 或手动触发时运行 `make test`：执行 pytest、生成 Allure 报告并发布到 Allure Report Storage，同时把本地报告保存为 GitHub Actions 构建产物。运行前在仓库的 **Settings → Secrets and variables → Actions** 中创建三个 Repository secrets：`SMALL_U1_EMAIL`、`SMALL_U1_PASSWORD`、`ALLURE_SERVICE_ACCESS_TOKEN`。最后一个应是下文说明的 `ars1.` 报告令牌。工作流会在运行测试前检查这些变量；CI 不需要上传完整的 YAML 或 `.env`。Allure Report Storage 需可从 GitHub 托管的 runner 访问。
+
 查看本地报告：
 
 ```bash
@@ -61,7 +71,7 @@ curl -X POST 'http://<storage-host>:3000/api/token' \
   -H 'Authorization: Bearer <bootstrap ACCESS_TOKEN>'
 ```
 
-取得 `ars1.` 开头的令牌后，在项目根目录创建 `.env`：
+取得 `ars1.` 开头的令牌后，在项目根目录的 `.env` 中追加：
 
 ```dotenv
 ALLURE_SERVICE_ACCESS_TOKEN=ars1.替换为签发的报告访问令牌
@@ -74,7 +84,7 @@ ALLURE_SERVICE_ACCESS_TOKEN=ars1.替换为签发的报告访问令牌
 ```text
 commons/                  请求、YAML 读取和断言工具
 data/                     接口测试数据（YAML）
-  login/                  登录与用户信息；本地账号文件不提交
+  login/                  登录与用户信息；YAML 使用账号占位符
   products/               商品用例
   shopcart/               购物车用例
   order/                  订单用例
@@ -82,7 +92,7 @@ testcases/                pytest 测试代码与登录 token fixture
 pytest.ini                pytest 配置与冒烟标记
 makefile                  本地报告与发布报告的运行入口
 allurerc.mjs              Allure 3 报告及发布配置
-.env                      本地报告访问令牌（不提交）
+.env                      本地账号变量和报告访问令牌（不提交）
 run.py                    旧的测试及报告生成入口；建议使用 make
 temps/                   Allure 原始结果（运行时生成）
 reports/                 Allure HTML 报告（运行时生成）
@@ -110,7 +120,7 @@ extract.yaml             登录后生成的 token（运行时生成）
 
 ## 本地数据与 Git
 
-`.gitignore` 忽略 `data/login/test_login.yaml`、`data/login/test_get_user.yaml`、`.env`、运行时的 `extract.yaml`、虚拟环境、缓存及 Allure 生成目录。仓库只保留 `*.example.yaml` 模板；不要把真实账号、密码或 token 写入这些模板。
+`.gitignore` 忽略 `.env`、运行时的 `extract.yaml`、虚拟环境、缓存及 Allure 生成目录。登录 YAML 可以提交，但只应包含占位符；不要把真实账号、密码或 token 写入仓库。
 
 如果敏感文件在设置忽略规则前已经被 Git 跟踪，`.gitignore` 不会自动取消跟踪；需要单独从 Git 索引移除，并检查是否已推送到远端。
 

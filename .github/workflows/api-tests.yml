@@ -1,0 +1,66 @@
+name: API tests
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Cart and order tests change shared test data.
+concurrency:
+  group: api-tests
+  cancel-in-progress: false
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          package-manager-cache: false
+
+      - name: Install dependencies
+        run: |
+          python -m pip install -r requirements.txt
+          npm install --global allure
+
+      - name: Run tests and publish Allure report
+        id: test
+        env:
+          SMALL_U1_EMAIL: ${{ secrets.SMALL_U1_EMAIL }}
+          SMALL_U1_PASSWORD: ${{ secrets.SMALL_U1_PASSWORD }}
+          ALLURE_SERVICE_ACCESS_TOKEN: ${{ secrets.ALLURE_SERVICE_ACCESS_TOKEN }}
+        run: |
+          if [[ -z "$SMALL_U1_EMAIL" || -z "$SMALL_U1_PASSWORD" ]]; then
+            echo 'Set SMALL_U1_EMAIL and SMALL_U1_PASSWORD repository secrets.' >&2
+            exit 1
+          fi
+          if [[ "$ALLURE_SERVICE_ACCESS_TOKEN" != ars1.* ]]; then
+            echo 'Set ALLURE_SERVICE_ACCESS_TOKEN to an ars1. report token.' >&2
+            exit 1
+          fi
+          make test
+
+      - name: Save Allure report
+        if: ${{ always() && steps.test.outcome != 'skipped' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report
+          path: reports/
+          retention-days: 7
+          if-no-files-found: warn

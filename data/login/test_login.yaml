@@ -1,0 +1,89 @@
+-
+  feature: 登录模块
+  story: 登录模块接口
+  title: 登录成功
+  request:
+    methods: post
+    url: http://134.175.134.64:8080/api/auth/login
+    headers: null
+    params:
+      "email": ${SMALL_U1_EMAIL}
+      "password": ${SMALL_U1_PASSWORD}
+  validate:
+    - eq: ["status_code", 200]
+    - contains: ["json.token", "eyJh"]
+    - ne: ["json.token", ""]
+    - eq: ["json.user.id", 1]
+    - eq: ["json.user.email", "${SMALL_U1_EMAIL}"]
+    - eq: ["json.user.name", "演示用户"]
+  extract:
+    - token: json.token
+
+# -
+#   feature: 登录模块
+#   story: 登录模块接口
+#   title: 登录成功
+#   request:
+#     methods: post
+#     url: http://134.175.134.64:8080/api/auth/login
+#     headers: null
+#     params:
+#       "email": ${SMALL_U2_EMAIL}
+#       "password": ${SMALL_U2_PASSWORD}
+#   validate:
+#     - eq: ["status_code", 200]
+#     - contains: ["json.token", "eyJh"]
+#     - ne: ["json.token", ""]
+#     - eq: ["json.user.id", 2]
+#     - eq: ["json.user.email", "${SMALL_U2_EMAIL}"]
+#     - eq: ["json.user.name", "另一位用户"]
+#   extract:
+#     - token: json.token
+
+-
+  feature: 登录模块
+  story: 登录模块接口
+  title: email参数有误
+  request:
+    methods: post
+    url: http://134.175.134.64:8080/api/auth/login
+    headers: null
+    params:
+      "email": "123"
+      "password": ${SMALL_U1_PASSWORD}
+  validate:
+    - eq: ["status_code", 401]
+    - eq: ["json.error.code", "INVALID_CREDENTIALS"]
+    - contains: ["json.error.message", "邮箱或密码错误"]
+
+-
+  feature: 登录模块
+  story: 登录模块接口
+  title: password参数有误
+  request:
+    methods: post
+    url: http://134.175.134.64:8080/api/auth/login
+    headers: null
+    params:
+      "email": ${SMALL_U1_EMAIL}
+      "password": "123"
+  validate:
+    - eq: ["status_code", 401]
+    - eq: ["json.error.code", "INVALID_CREDENTIALS"]
+    - contains: ["json.error.message", "邮箱或密码错误"]
+
+-
+  feature: 登录模块
+  story: 登录模块接口
+  title: 登录参数为空
+  request:
+    methods: post
+    url: http://134.175.134.64:8080/api/auth/login
+    headers: null
+    params:
+      "email": ""
+      "password": ""
+  validate: 
+    - eq: ["status_code", 400]
+    - eq: ["json.error.code", "INVALID_INPUT"]
+    - contains: ["json.error.message", "请输入邮箱和密码"]
