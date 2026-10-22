@@ -84,20 +84,25 @@ jobs:
             echo 'Set ALLURE_SERVICE_ACCESS_TOKEN to an ars1. report token.' >&2
             exit 1
           fi
+          if [[ -z "$GITHUB_REPOSITORY" || -z "$GITHUB_REF" ]]; then
+            echo 'GitHub repository and ref are required for Allure history.' >&2
+            exit 1
+          fi
           container="api-tests-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           trap 'docker rm -f "$container" >/dev/null 2>&1 || true' EXIT
           set +e
           docker run --name "$container" \
             -e SMALL_U1_EMAIL -e SMALL_U1_PASSWORD -e ALLURE_SERVICE_ACCESS_TOKEN \
-            -e GITHUB_ACTIONS -e GITHUB_REPOSITORY -e GITHUB_REF_NAME -e GITHUB_SHA \
-            -e GITHUB_RUN_ID -e GITHUB_WORKFLOW \
+            -e GITHUB_ACTIONS -e GITHUB_REPOSITORY -e GITHUB_REF -e GITHUB_REF_TYPE \
+            -e GITHUB_REF_NAME -e GITHUB_SHA -e GITHUB_SERVER_URL \
+            -e GITHUB_RUN_ID -e GITHUB_RUN_NUMBER -e GITHUB_JOB -e GITHUB_WORKFLOW \
             "$TEST_IMAGE"
           status=$?
           set -e
 
           mkdir -p reports
-          if ! docker cp "$container:/app/reports/." reports/; then
-            echo 'No local Allure report was produced.' >&2
+          if ! docker cp "$container:/app/reports/." reports/ 2>/dev/null; then
+            echo 'No local Allure report was produced; check the test and report-generation logs.' >&2
           fi
           exit "$status"
 

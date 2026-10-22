@@ -8,7 +8,9 @@ RUN python3 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:${PATH}"
 
 WORKDIR /app
-RUN npm install --global allure@3
+ARG NPM_REGISTRY=https://mirrors.tencent.com/npm/
+RUN --mount=type=cache,target=/root/.npm \
+    npm install --global --registry="$NPM_REGISTRY" allure@3
 
 COPY requirements.txt ./
 ARG PIP_INDEX_URL=https://mirrors.tencent.com/pypi/simple/

@@ -64,7 +64,7 @@ python -m pytest testcases/products/test_products.py
 
 工作流从镜像地址提取登录域名，用 TCR 凭据推送和拉取。测试账号和报告令牌只在运行容器时注入，不写入镜像。自托管 runner 要能访问 TCR、测试接口和 Allure Report Storage。报告令牌内嵌的服务地址也必须能从测试容器访问。如果签发令牌时用了 `localhost:3000`，应先为报告服务设置容器可访问的 `PUBLIC_URL`，再重新签发令牌。
 
-Python 依赖默认从腾讯云 PyPI 镜像 `https://mirrors.tencent.com/pypi/simple/` 安装；需要其他源时，构建命令可加 `--build-arg PIP_INDEX_URL=<源地址>`。Dockerfile 在复制项目源码前安装依赖，并使用 BuildKit 缓存 pip 下载包。CI 的构建日志使用 `--progress=plain`：依赖步骤显示 `CACHED` 表示整层复用；步骤重新执行时仍可复用 pip 下载缓存。首次构建仍需下载依赖。
+Python 依赖默认从腾讯云 PyPI 镜像 `https://mirrors.tencent.com/pypi/simple/` 安装，Allure 的 npm 包默认从腾讯云 npm 镜像 `https://mirrors.tencent.com/npm/` 安装；需要其他源时，构建命令可分别加 `--build-arg PIP_INDEX_URL=<源地址>`、`--build-arg NPM_REGISTRY=<源地址>`。Dockerfile 在复制项目源码前安装依赖，并使用 BuildKit 缓存 pip 和 npm 下载包。CI 的构建日志使用 `--progress=plain`：依赖步骤显示 `CACHED` 表示整层复用；步骤重新执行时仍可复用下载缓存。首次构建仍需下载依赖。
 
 查看本地报告：
 
