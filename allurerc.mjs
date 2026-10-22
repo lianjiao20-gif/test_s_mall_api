@@ -2,9 +2,16 @@
 //   python -m pytest
 //   npx allure generate ./temps --config ./allurerc.mjs
 // Obtain ALLURE_SERVICE_ACCESS_TOKEN from POST /api/token on the storage service.
-const accessToken = "ars1.eyJhY2Nlc3NUb2tlbiI6IldlV1BKOFRiOV9oNzBzVmxjV05GSld3bm1vMkVUbnRyZG1ka3VxQllOZU0iLCJ1cmwiOiJodHRwOi8vMTM0LjE3NS4xMzQuNjQ6MzAwMCJ9.6jiz0pX5yq9tIsoLrj-jZw5lJQW-vZxXtw4NskHgse8";
+import { existsSync } from "node:fs";
+import { loadEnvFile } from "node:process";
 
-if (!accessToken?.startsWith("ars1.")) {
+if (existsSync(".env")) {
+  loadEnvFile(".env");
+}
+
+const publish = process.env.ALLURE_SERVICE_PUBLISH === "true";
+const accessToken = process.env.ALLURE_SERVICE_ACCESS_TOKEN;
+if (publish && !accessToken?.startsWith("ars1.")) {
   throw new Error(
     "Set ALLURE_SERVICE_ACCESS_TOKEN to the ars1. report token issued by Allure Report Storage",
   );
@@ -16,11 +23,9 @@ export default {
   plugins: {
     awesome: {
       options: {
-        publish: process.env.ALLURE_SERVICE_PUBLISH === "true",
+        publish,
       },
     },
   },
-  allureService: {
-    accessToken,
-  },
+  ...(publish ? { allureService: { accessToken } } : {}),
 };

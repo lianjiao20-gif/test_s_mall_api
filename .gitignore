@@ -4,6 +4,7 @@
 # Local login cases include test account credentials and user details.
 /data/login/test_login.yaml
 /data/login/test_get_user.yaml
+/.env
 
 # Local Python environment and caches.
 /.venv/
