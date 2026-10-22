@@ -30,8 +30,7 @@ jobs:
           TCR_USERNAME: ${{ secrets.TCR_USERNAME }}
           TCR_PASSWORD: ${{ secrets.TCR_PASSWORD }}
         run: |
-          export http_proxy=http://127.0.0.1:7890
-          export https_proxy=http://127.0.0.1:7890
+          export https_proxy=http://127.0.0.1:7890 http_proxy=http://127.0.0.1:7890 all_proxy=socks5://127.0.0.1:7890
           if [[ ! "$TCR_IMAGE_REPOSITORY" =~ ^[^/]+/.+/.+$ || "${TCR_IMAGE_REPOSITORY##*/}" == *:* ]]; then
             echo 'Set TCR_IMAGE_REPOSITORY to registry/namespace/repository without a tag.' >&2
             exit 1
