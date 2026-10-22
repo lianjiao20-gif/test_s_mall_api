@@ -42,7 +42,7 @@ jobs:
           registry="${TCR_IMAGE_REPOSITORY%%/*}"
           image="${TCR_IMAGE_REPOSITORY}:${GITHUB_SHA}"
           printf '%s' "$TCR_PASSWORD" | docker login "$registry" -u "$TCR_USERNAME" --password-stdin
-          docker build --build-arg "VCS_URL=https://github.com/$GITHUB_REPOSITORY" -t "$image" .
+          docker build --progress=plain --build-arg "VCS_URL=https://github.com/$GITHUB_REPOSITORY" -t "$image" .
           docker push "$image"
           echo "image=$image" >> "$GITHUB_OUTPUT"
           docker logout "$registry"
