@@ -54,7 +54,15 @@ python -m pytest testcases/products/test_products.py
 
 ### GitHub Actions
 
-`.github/workflows/api-tests.yml` 在推送到 `main` 或手动触发时运行 `make test`：执行 pytest、生成 Allure 报告并发布到 Allure Report Storage，同时把本地报告保存为 GitHub Actions 构建产物。运行前在仓库的 **Settings → Secrets and variables → Actions** 中创建三个 Repository secrets：`SMALL_U1_EMAIL`、`SMALL_U1_PASSWORD`、`ALLURE_SERVICE_ACCESS_TOKEN`。最后一个应是下文说明的 `ars1.` 报告令牌。工作流会在运行测试前检查这些变量；CI 不需要上传完整的 YAML 或 `.env`。Allure Report Storage 需可从 GitHub 托管的 runner 访问。
+`.github/workflows/api-tests.yml` 在推送到 `main` 或手动触发时，先在 GitHub 托管 runner 上构建测试镜像并推送到腾讯云容器镜像服务（TCR），镜像标签为提交 SHA。随后 Linux x64 自托管 runner 拉取该镜像，在容器内运行 `make test`：执行 pytest、生成 Allure 报告并发布到 Allure Report Storage；报告也会保存为 GitHub Actions 构建产物。自托管 runner 需要 Docker，无需在宿主机安装 Python、Node.js 或项目依赖。
+
+运行前在仓库的 **Settings → Secrets and variables → Actions** 中配置：
+
+- Repository variable `TCR_IMAGE_REPOSITORY`：完整镜像仓库地址，不含标签。例如个人版 `ccr.ccs.tencentyun.com/命名空间/仓库名`；企业版使用控制台提供的 `<实例名>.tencentcloudcr.com/命名空间/仓库名`。
+- Repository secrets `TCR_USERNAME`、`TCR_PASSWORD`：该仓库的 Docker 登录凭据，需有推送和拉取权限。企业版的 CI 可使用服务级账号。
+- Repository secrets `SMALL_U1_EMAIL`、`SMALL_U1_PASSWORD`、`ALLURE_SERVICE_ACCESS_TOKEN`：测试账号和下文说明的 `ars1.` 报告令牌。
+
+工作流从镜像地址提取登录域名，用 TCR 凭据推送和拉取。测试账号和报告令牌只在运行容器时注入，不写入镜像。GitHub 托管 runner 和自托管 runner 都要能访问 TCR；自托管 runner 还需能访问测试接口和 Allure Report Storage。报告令牌内嵌的服务地址也必须能从测试容器访问。如果签发令牌时用了 `localhost:3000`，应先为报告服务设置容器可访问的 `PUBLIC_URL`，再重新签发令牌。
 
 查看本地报告：
 
@@ -91,6 +99,8 @@ data/                     接口测试数据（YAML）
 testcases/                pytest 测试代码与登录 token fixture
 pytest.ini                pytest 配置与冒烟标记
 makefile                  本地报告与发布报告的运行入口
+Dockerfile                测试镜像定义
+.dockerignore             构建镜像时排除本地凭据和生成文件
 allurerc.mjs              Allure 3 报告及发布配置
 .env                      本地账号变量和报告访问令牌（不提交）
 run.py                    旧的测试及报告生成入口；建议使用 make

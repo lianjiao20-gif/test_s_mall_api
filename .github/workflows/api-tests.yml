@@ -5,43 +5,72 @@ on:
     branches: [main]
   workflow_dispatch:
 
-permissions:
-  contents: read
-
 # Cart and order tests change shared test data.
 concurrency:
   group: api-tests
   cancel-in-progress: false
 
 jobs:
-  test:
-    runs-on: self-hosted
-    timeout-minutes: 30
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      image: ${{ steps.image.outputs.image }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
         with:
           persist-credentials: false
 
-      - name: Set up Python
-        uses: actions/setup-python@v7
-        with:
-          python-version: '3.11'
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v7
-        with:
-          node-version: '24'
-          package-manager-cache: false
-
-      - name: Install dependencies
+      - name: Build and push test image
+        id: image
+        env:
+          TCR_IMAGE_REPOSITORY: ${{ vars.TCR_IMAGE_REPOSITORY }}
+          TCR_USERNAME: ${{ secrets.TCR_USERNAME }}
+          TCR_PASSWORD: ${{ secrets.TCR_PASSWORD }}
         run: |
-          python -m pip install -r requirements.txt
-          npm install --global allure
+          if [[ ! "$TCR_IMAGE_REPOSITORY" =~ ^[^/]+/.+/.+$ || "${TCR_IMAGE_REPOSITORY##*/}" == *:* ]]; then
+            echo 'Set TCR_IMAGE_REPOSITORY to registry/namespace/repository without a tag.' >&2
+            exit 1
+          fi
+          if [[ -z "$TCR_USERNAME" || -z "$TCR_PASSWORD" ]]; then
+            echo 'Set TCR_USERNAME and TCR_PASSWORD repository secrets.' >&2
+            exit 1
+          fi
+          registry="${TCR_IMAGE_REPOSITORY%%/*}"
+          image="${TCR_IMAGE_REPOSITORY}:${GITHUB_SHA}"
+          printf '%s' "$TCR_PASSWORD" | docker login "$registry" -u "$TCR_USERNAME" --password-stdin
+          docker build --build-arg "VCS_URL=https://github.com/$GITHUB_REPOSITORY" -t "$image" .
+          docker push "$image"
+          echo "image=$image" >> "$GITHUB_OUTPUT"
+          docker logout "$registry"
+
+  test:
+    needs: build
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Pull test image
+        env:
+          TEST_IMAGE: ${{ needs.build.outputs.image }}
+          TCR_USERNAME: ${{ secrets.TCR_USERNAME }}
+          TCR_PASSWORD: ${{ secrets.TCR_PASSWORD }}
+        run: |
+          if [[ -z "$TCR_USERNAME" || -z "$TCR_PASSWORD" ]]; then
+            echo 'Set TCR_USERNAME and TCR_PASSWORD repository secrets.' >&2
+            exit 1
+          fi
+          registry="${TEST_IMAGE%%/*}"
+          printf '%s' "$TCR_PASSWORD" | docker login "$registry" -u "$TCR_USERNAME" --password-stdin
+          docker pull "$TEST_IMAGE"
 
       - name: Run tests and publish Allure report
         id: test
         env:
+          TEST_IMAGE: ${{ needs.build.outputs.image }}
           SMALL_U1_EMAIL: ${{ secrets.SMALL_U1_EMAIL }}
           SMALL_U1_PASSWORD: ${{ secrets.SMALL_U1_PASSWORD }}
           ALLURE_SERVICE_ACCESS_TOKEN: ${{ secrets.ALLURE_SERVICE_ACCESS_TOKEN }}
@@ -54,7 +83,22 @@ jobs:
             echo 'Set ALLURE_SERVICE_ACCESS_TOKEN to an ars1. report token.' >&2
             exit 1
           fi
-          make test
+          container="api-tests-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          trap 'docker rm -f "$container" >/dev/null 2>&1 || true' EXIT
+          set +e
+          docker run --name "$container" \
+            -e SMALL_U1_EMAIL -e SMALL_U1_PASSWORD -e ALLURE_SERVICE_ACCESS_TOKEN \
+            -e GITHUB_ACTIONS -e GITHUB_REPOSITORY -e GITHUB_REF_NAME -e GITHUB_SHA \
+            -e GITHUB_RUN_ID -e GITHUB_WORKFLOW \
+            "$TEST_IMAGE"
+          status=$?
+          set -e
+
+          mkdir -p reports
+          if ! docker cp "$container:/app/reports/." reports/; then
+            echo 'No local Allure report was produced.' >&2
+          fi
+          exit "$status"
 
       - name: Save Allure report
         if: ${{ always() && steps.test.outcome != 'skipped' }}
@@ -64,3 +108,12 @@ jobs:
           path: reports/
           retention-days: 7
           if-no-files-found: warn
+
+      - name: Log out of Tencent Cloud registry
+        if: ${{ always() }}
+        env:
+          TEST_IMAGE: ${{ needs.build.outputs.image }}
+        run: |
+          if [[ -n "$TEST_IMAGE" ]]; then
+            docker logout "${TEST_IMAGE%%/*}" || true
+          fi

@@ -1,0 +1,20 @@
+FROM node:24-bookworm-slim
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends make python3 python3-venv \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN python3 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:${PATH}"
+
+WORKDIR /app
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt \
+    && npm install --global allure@3
+
+COPY . .
+
+ARG VCS_URL
+LABEL org.opencontainers.image.source="${VCS_URL}"
+
+CMD ["make", "test"]
