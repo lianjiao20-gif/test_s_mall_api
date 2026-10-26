@@ -5,7 +5,7 @@ on:
     branches: [main]
   workflow_dispatch:
   schedule:
-    - cron: '00 17 * * *' 
+    - cron: '0 22 * * *' 
       timezone: Asia/Shanghai
 
 # Cart and order tests change shared test data.
