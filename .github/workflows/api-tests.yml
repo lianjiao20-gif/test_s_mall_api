@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  schedule:
+    - cron: '15 16 * * *' 
+      timezone: Asia/Shanghai
 
 # Cart and order tests change shared test data.
 concurrency:
