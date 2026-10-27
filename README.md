@@ -54,7 +54,7 @@ python -m pytest testcases/products/test_products.py
 
 ### GitHub Actions
 
-`.github/workflows/api-tests.yml` 在推送到 `main`、手动触发，以及每天北京时间 17:00 定时触发时运行。三种触发方式使用同一套流程：先在自托管 runner 上构建测试镜像并推送到腾讯云容器镜像服务（TCR），镜像标签为提交 SHA；随后 Linux x64 自托管 runner 拉取该镜像，在容器内运行 `make test`：执行 pytest、生成 Allure 报告并发布到 Allure Report Storage。报告也会保存为 GitHub Actions 构建产物。自托管 runner 需要 Docker，无需在宿主机安装 Python、Node.js 或项目依赖。
+`.github/workflows/api-tests.yml` 在推送到 `main`、手动触发，以及每天北京时间 18:00 定时触发时运行。三种触发方式使用同一套流程：先在自托管 runner 上构建测试镜像并推送到腾讯云容器镜像服务（TCR），镜像标签为提交 SHA；随后 Linux x64 自托管 runner 拉取该镜像，在容器内运行 `make test`：执行 pytest、生成 Allure 报告并发布到 Allure Report Storage。报告也会保存为 GitHub Actions 构建产物。自托管 runner 需要 Docker，无需在宿主机安装 Python、Node.js 或项目依赖。
 
 定时任务使用工作流中的 `schedule` 配置，只会基于仓库默认分支的最新提交运行；修改定时时间时，同时更新此处说明。GitHub 的定时触发可能延迟，自托管 runner 也需要在运行时保持在线。购物车和订单用例会修改共享测试数据，工作流通过 `concurrency` 避免多次运行同时执行。
 
