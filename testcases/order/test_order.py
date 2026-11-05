@@ -70,6 +70,9 @@ class TestOrder:
                 headers=headers,
                 json=setup["json"],
             )
+            if (setup_res.status_code == 409
+                    and setup_res.json().get("error", {}).get("code") == "OUT_OF_STOCK"):
+                pytest.skip("库存不足，无法准备订单商品，跳过当前用例")
             assert setup_res.status_code == 201, setup_res.text
 
         res = RequestUtil().sendRequest(

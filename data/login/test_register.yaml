@@ -1,0 +1,67 @@
+-
+  feature: 注册模块
+  story: 获取注册账号接口
+  title: 昵称为空时注册失败
+  request:
+    methods: post
+    url: http://134.175.134.64:8080/api/auth/register
+    headers: null
+    params:
+      "name": ""
+      "email": ""
+      "password": ""
+  validate: 
+    - eq: ["status_code", 400]
+    - eq: ["json.error.code", "INVALID_NAME"]
+    - eq: ["json.error.message", "昵称应为 1 至 100 个字符"]
+
+-
+  feature: 注册模块
+  story: 获取注册账号接口
+  title: 注册信息不合法
+  request:
+    methods: post
+    url: http://134.175.134.64:8080/api/auth/register
+    headers: null
+    params:
+      "name": "新用户"
+      "email": "demo@123"
+      "password": "123456789"
+  validate: 
+    - eq: ["status_code", 400]
+    - eq: ["json.error.code", "INVALID_EMAIL"]
+    - eq: ["json.error.message", "请输入有效的邮箱地址"]
+
+-
+  feature: 注册模块
+  story: 获取注册账号接口
+  title: 密码长度不符合规范
+  request:
+    methods: post
+    url: http://134.175.134.64:8080/api/auth/register
+    headers: null
+    params:
+      "name": "新用户1"
+      "email": "123@example.com"
+      "password": "123456"
+  validate: 
+    - eq: ["status_code", 400]
+    - eq: ["json.error.code", "INVALID_PASSWORD"]
+    - eq: ["json.error.message", "密码长度应为 8 至 72 字节"]
+
+-
+  feature: 注册模块
+  story: 获取注册账号接口
+  title: 邮箱已被注册
+  request:
+    methods: post
+    url: http://134.175.134.64:8080/api/auth/register
+    headers: null
+    params:
+      "name": "新用户1"
+      "email": "demo@example.com"
+      "password": "123456789"
+  validate: 
+    - eq: ["status_code", 409]
+    - eq: ["json.error.code", "EMAIL_EXISTS"]
+    - eq: ["json.error.message", "该邮箱已注册，请直接登录"]

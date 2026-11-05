@@ -99,6 +99,9 @@ class TestCart:
                     json={"productId": product_id, "quantity": 1},
                 )
                 created = add_res.status_code == 201
+                if (add_res.status_code == 409
+                        and add_res.json().get("error", {}).get("code") == "OUT_OF_STOCK"):
+                    pytest.skip("库存不足，无法准备购物车，跳过当前用例")
                 assert add_res.status_code == 201, add_res.text
             elif not needs_present and original_quantity is not None:
                 remove_res = RequestUtil().sendRequest(
