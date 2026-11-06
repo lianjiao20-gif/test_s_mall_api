@@ -1,18 +1,19 @@
 import pytest
 from commons.assert_util import execute_validate
 from commons.request_util import RequestUtil
-from commons.yaml_util import read_yaml, write_yaml
+from commons.yaml_util import read_yaml, resolve_env_data, write_yaml
 
 
 class TestLogin:
-    @pytest.mark.parametrize("login_case", read_yaml("data/login/test_login.yaml"))
+    @pytest.mark.parametrize("login_case", read_yaml("data/login/test_login.yaml", resolve_env=False))
     def test_login(self, login_case):
-        request_data = login_case["request"]            
+        case = resolve_env_data(login_case)
+        request_data = case["request"]
         res = RequestUtil().sendRequest(
             method = request_data["methods"],
             url = request_data["url"],
             json = request_data["params"],
         )
-        execute_validate(res, login_case["validate"])
+        execute_validate(res, case["validate"])
         if res.status_code == 200:
             write_yaml({"token": res.json()["token"]})

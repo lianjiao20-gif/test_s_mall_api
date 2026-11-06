@@ -32,6 +32,8 @@ SMALL_U1_PASSWORD=你的测试密码
 
 `read_yaml` 读取用例时会替换 `${SMALL_U1_EMAIL}`、`${SMALL_U1_PASSWORD}` 等占位符；同名的 shell 环境变量优先于 `.env`。`${token}` 会留到登录后由测试代码填入。
 
+登录和注册用例在参数化时使用 `read_yaml(..., resolve_env=False)` 保留占位符，执行时再用 `resolve_env_data(case)` 生成解析后的新对象。因此 Allure 用例参数不会记录环境变量中的真实凭据。此处理只保护参数；失败消息和日志仍应避免输出密码或 token，也不要将真实凭据直接写入 YAML。
+
 `make install` 只安装 Python 依赖。Allure Report 3 需要单独安装，并确保 `allure` 命令指向 3.x；例如已安装 Node.js 和 npm 时，可运行 `npm install -g allure`。
 
 项目中的其他 YAML 用例目前使用完整接口 URL；切换测试环境时，需要同步修改这些 URL。`pytest.ini` 中的 `base_url` 不会自动替换 YAML 里的完整 URL。请从项目根目录运行命令，因为代码按相对路径读取测试数据。
